@@ -18,6 +18,26 @@ const maxSavedResults = 10
 
 app.set('port', (process.env.PORT ||  5000))
 
+app.get('/api/latest/imagesearch*', (req, res) => {
+  mongo.MongoClient.connect(MONGO_URI, {
+    promiseLibrary: Promise
+  }).then((db) => {    
+    const collection = db.collection(mongoCollection)
+    return collection.find(
+      {},
+      { _id: 0, search: 1, unixtime: 1 }
+    ).toArray().then((docs) => {
+      res.send(docs)
+    })
+    .finally(() => {
+      db.close()
+    })
+  })
+  .catch((err) => {
+    console.error('ERROR', err)
+  })
+})
+
 app.get('/api/imagesearch/*', (req, res) => {
   const prefix = '/api/imagesearch/'
   const search = url.parse(req.url).pathname
