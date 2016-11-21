@@ -7,6 +7,8 @@ const mongo = require('mongodb')
 const url = require('url')
 const express = require('express')
 const app = express()
+const marked = require('marked')
+const readFileAsync = Promise.promisify(require('fs').readFile)
 
 const BING_SEARCH_KEY = process.env.BING_SEARCH_KEY
 const MONGO_URI = process.env.MONGO_URI
@@ -17,6 +19,16 @@ const maxSavedResults = 10
 
 
 app.set('port', (process.env.PORT ||  5000))
+
+// Send README.md
+app.get('/', (req, res) => {
+  readFileAsync('./README.md', 'utf8').then((data) => {
+    res.send(marked(data))
+  })
+  .catch((err) => {
+    console.error('ERROR' + err)
+  })
+})
 
 app.get('/api/latest/imagesearch*', (req, res) => {
   mongo.MongoClient.connect(MONGO_URI, {

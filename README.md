@@ -1,6 +1,9 @@
 ## Image Search Abstraction Layer
 Paul Hoskinson (plhosk@gmail.com)
 
+- [Github repository](https://github.com/plhosk/image-search)
+- [Try it live on Heroku](https://image-search-plhosk.herokuapp.com/)
+
 ### User Stories
 - I can get the image URLs, alt text and page urls for a set of images relating to a given search string.
 - I can paginate through the responses by adding a ?offset=20 parameter to the URL.
