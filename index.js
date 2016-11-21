@@ -1,6 +1,7 @@
 'use strict'
 require('dotenv').config()
 const Promise = require('bluebird')
+Promise.longStackTraces();
 const getAsync = Promise.promisify(require('request').get, {multiArgs:true})
 const mongo = Promise.promisifyAll(require('mongodb'))
 const url = require('url')
@@ -9,9 +10,10 @@ const app = express()
 
 const BING_SEARCH_KEY = process.env.BING_SEARCH_KEY
 const MONGO_URI = process.env.MONGO_URI
-const collection = 'image-search'
+const mongoCollection = 'image-search'
 const searchUrl = 'https://api.cognitive.microsoft.com/bing/v5.0/images/search'
 const resultsPerPage = 20
+const maxSavedResults = 20
 
 
 app.set('port', (process.env.PORT ||  5000))
@@ -38,6 +40,32 @@ app.get('/api/imagesearch/*', (req, res) => {
     bingOptions.qs.offset = offset
   }
   console.log(bingOptions)
+
+  mongo.MongoClient.connectAsync(MONGO_URI)
+    .then((db) => {
+      const collection = db.collection(mongoCollection)
+      return collection.countAsync()
+        .then((number) => {
+          number -= maxSavedResults
+          if ( number > 0) {
+            return collection.findOneAndDeleteAsync(
+              {},
+              { sort: { unixtime: 1 } }
+            )
+          } else return Promise.resolve()
+        })
+        .then(() => {
+          return collection.insertOneAsync({
+            search,
+            unixtime: Math.floor(Date.now() / 1000)
+          })
+        })
+        .finally(db.close())
+    })
+  .catch(err => {
+    console.error('ERROR', err)
+  })
+
   getAsync(bingOptions).spread((response, body) => {
     if (response.statusCode != 200) {
       throw new Error('Unsuccessful attempt. Code: ' + response.statusCode)
@@ -54,6 +82,7 @@ app.get('/api/imagesearch/*', (req, res) => {
       }
     })
     res.send(searchResults)
+
   })
   .catch(console.error)
 
