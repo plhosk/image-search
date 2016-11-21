@@ -11,7 +11,7 @@ const BING_SEARCH_KEY = process.env.BING_SEARCH_KEY
 const MONGO_URI = process.env.MONGO_URI
 const collection = 'image-search'
 const searchUrl = 'https://api.cognitive.microsoft.com/bing/v5.0/images/search'
-const resultsPerPage = 10
+const resultsPerPage = 20
 
 
 app.set('port', (process.env.PORT ||  5000))
