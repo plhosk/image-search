@@ -3,7 +3,7 @@ require('dotenv').config()
 const Promise = require('bluebird')
 Promise.longStackTraces();
 const getAsync = Promise.promisify(require('request').get, {multiArgs:true})
-const mongo = Promise.promisifyAll(require('mongodb'))
+const mongo = require('mongodb')
 const url = require('url')
 const express = require('express')
 const app = express()
@@ -13,7 +13,7 @@ const MONGO_URI = process.env.MONGO_URI
 const mongoCollection = 'image-search'
 const searchUrl = 'https://api.cognitive.microsoft.com/bing/v5.0/images/search'
 const resultsPerPage = 20
-const maxSavedResults = 20
+const maxSavedResults = 10
 
 
 app.set('port', (process.env.PORT ||  5000))
@@ -39,29 +39,31 @@ app.get('/api/imagesearch/*', (req, res) => {
   if (isFinite(offset) && !isNaN(parseFloat(offset))) {
     bingOptions.qs.offset = offset
   }
-  console.log(bingOptions)
+  //console.log(bingOptions)
 
-  mongo.MongoClient.connectAsync(MONGO_URI)
-    .then((db) => {
-      const collection = db.collection(mongoCollection)
-      return collection.countAsync()
-        .then((number) => {
-          number -= maxSavedResults
-          if ( number > 0) {
-            return collection.findOneAndDeleteAsync(
-              {},
-              { sort: { unixtime: 1 } }
-            )
-          } else return Promise.resolve()
-        })
-        .then(() => {
-          return collection.insertOneAsync({
-            search,
-            unixtime: Math.floor(Date.now() / 1000)
-          })
-        })
-        .finally(db.close())
+  mongo.MongoClient.connect(MONGO_URI, {
+    promiseLibrary: Promise
+  }).then((db) => {
+    const collection = db.collection(mongoCollection)
+    return collection.count().then((number) => {
+      number -= maxSavedResults
+      if ( number >= 0) {
+        return collection.findOneAndDelete(
+          {},
+          { sort: { unixtime: 1 } }
+        )
+      } else return Promise.resolve()
     })
+    .then(() => {
+      return collection.insertOne({
+        search,
+        unixtime: Math.floor(Date.now() / 1000)
+      })
+    })
+    .finally(() => {
+      db.close()
+    })
+  })
   .catch(err => {
     console.error('ERROR', err)
   })

@@ -9,7 +9,7 @@ Paul Hoskinson (plhosk@gmail.com)
 ### Usage
 - Image search for "sail boat": `/api/imagesearch/sail+boat`
 - Page 2 of above results (20 results per page): `/api/imagesearch/sail+boat?offset=20`
-- See the 20 most recent search requests: `/api/latest/imagesearch`
+- See the 10 most recent search requests: `/api/latest/imagesearch`
 - Results are returned in JSON format.
 
 ### Technologies
