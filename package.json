@@ -1,0 +1,16 @@
+{
+  "name": "image-search",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "https://github.com/plhosk/image-search.git",
+  "author": "Paul Hoskinson (plhosk@gmail.com)",
+  "license": "MIT",
+  "dependencies": {
+    "bluebird": "^3.4.6",
+    "dotenv": "^2.0.0",
+    "express": "^4.14.0",
+    "mongodb": "^2.2.11",
+    "request": "^2.79.0",
+    "url": "^0.11.0"
+  }
+}
